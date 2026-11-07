@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WarungKu</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 40%, #388e3c 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 24px 16px;
+    }
+
+    .phone-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .phone-label {
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      background: #111;
+      border-radius: 52px;
+      padding: 14px;
+      box-shadow:
+        0 0 0 2px #333,
+        0 0 0 4px #555,
+        0 30px 80px rgba(0,0,0,0.6),
+        inset 0 0 0 1px #222;
+      position: relative;
+    }
+
+    /* Dynamic Island */
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 34px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 9999;
+    }
+
+    /* Side buttons */
+    .phone-frame::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 160px;
+      width: 4px;
+      height: 70px;
+      background: #444;
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 90px 0 #444;
+    }
+
+    .btn-left-top {
+      position: absolute;
+      left: -4px;
+      top: 130px;
+      width: 4px;
+      height: 36px;
+      background: #444;
+      border-radius: 2px 0 0 2px;
+    }
+    .btn-left-mid {
+      position: absolute;
+      left: -4px;
+      top: 185px;
+      width: 4px;
+      height: 60px;
+      background: #444;
+      border-radius: 2px 0 0 2px;
+      box-shadow: 0 80px 0 #444;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #f0f4f0;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Status bar */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: transparent;
+      z-index: 9998;
+      display: flex;
+      align-items: flex-start;
+      padding-top: 14px;
+      padding-left: 20px;
+      padding-right: 20px;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .status-time {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .status-icons span {
+      font-size: 12px;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .app-container {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-top: 0;
+    }
+
+    /* Override fixed positioning inside phone frame */
+    .app-container .bottom-nav-fixed {
+      position: absolute !important;
+    }
+
+    /* Home indicator */
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 5px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 3px;
+      z-index: 9999;
+    }
+
+    /* Responsive - pada layar kecil tampilkan fullscreen */
+    @media (max-width: 480px) {
+      body {
+        background: #f0f4f0;
+        padding: 0;
+        align-items: stretch;
+      }
+      .phone-wrap { gap: 0; }
+      .phone-label { display: none; }
+      .phone-frame {
+        width: 100vw;
+        height: 100dvh;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+        background: #f0f4f0;
+      }
+      .phone-frame::before,
+      .phone-frame::after,
+      .btn-left-top,
+      .btn-left-mid { display: none; }
+      .phone-screen { border-radius: 0; }
+      .home-indicator { display: none; }
+      .status-bar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-wrap">
+  <div class="phone-label">WarungKu App</div>
+  <div class="phone-frame">
+    <div class="btn-left-top"></div>
+    <div class="btn-left-mid"></div>
+    <div class="phone-screen">
+      <div class="status-bar">
+        <span class="status-time" id="statusTime">9:41</span>
+        <div class="status-icons">
+          <span>▲▲▲</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+      <div class="app-container" id="app-root-container">
+        <div id="root"></div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Update status bar time
+  function updateTime() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2, '0');
+    const m = now.getMinutes().toString().padStart(2, '0');
+    const el = document.getElementById('statusTime');
+    if (el) el.textContent = h + ':' + m;
+  }
+  updateTime();
+  setInterval(updateTime, 10000);
+</script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ─── SEED DATA ───────────────────────────────────────────────────────────────
+const SEED_BARANG = [
+  { id: 1, nama: "Beras 5kg", harga: 65000, stok: 20 },
+  { id: 2, nama: "Minyak Goreng 1L", harga: 17000, stok: 35 },
+  { id: 3, nama: "Gula Pasir 1kg", harga: 14000, stok: 28 },
+  { id: 4, nama: "Telur 1kg", harga: 25000, stok: 15 },
+  { id: 5, nama: "Indomie Goreng", harga: 3500, stok: 100 },
+  { id: 6, nama: "Kecap Manis 275ml", harga: 8500, stok: 22 },
+  { id: 7, nama: "Sabun Cuci 800g", harga: 12000, stok: 18 },
+  { id: 8, nama: "Tepung Terigu 1kg", harga: 11000, stok: 30 },
+];
+
+const SEED_TRANSAKSI = [
+  {
+    id: "TRX001",
+    tanggal: "2026-06-01",
+    items: [
+      { barangId: 5, nama: "Indomie Goreng", harga: 3500, qty: 5, subtotal: 17500 },
+      { barangId: 2, nama: "Minyak Goreng 1L", harga: 17000, qty: 1, subtotal: 17000 },
+    ],
+    total: 34500,
+  },
+  {
+    id: "TRX002",
+    tanggal: "2026-06-02",
+    items: [{ barangId: 1, nama: "Beras 5kg", harga: 65000, qty: 2, subtotal: 130000 }],
+    total: 130000,
+  },
+  {
+    id: "TRX003",
+    tanggal: "2026-06-03",
+    items: [
+      { barangId: 4, nama: "Telur 1kg", harga: 25000, qty: 3, subtotal: 75000 },
+      { barangId: 3, nama: "Gula Pasir 1kg", harga: 14000, qty: 2, subtotal: 28000 },
+    ],
+    total: 103000,
+  },
+  {
+    id: "TRX004",
+    tanggal: "2026-06-04",
+    items: [{ barangId: 5, nama: "Indomie Goreng", harga: 3500, qty: 10, subtotal: 35000 }],
+    total: 35000,
+  },
+  {
+    id: "TRX005",
+    tanggal: "2026-06-05",
+    items: [{ barangId: 6, nama: "Kecap Manis 275ml", harga: 8500, qty: 2, subtotal: 17000 }],
+    total: 17000,
+  },
+];
+
+const SEED_KASBON = [
+  {
+    id: "KB001", nama: "Ibu Sari", hp: "081234567890", tanggal: "2026-05-10",
+    items: [{ nama: "Beras 5kg", qty: 2, subtotal: 130000 }],
+    totalHutang: 130000,
+    pembayaran: [
+      { id: "P001", tanggal: "2026-05-15", nominal: 50000 },
+      { id: "P002", tanggal: "2026-05-20", nominal: 50000 },
+    ],
+    status: "cicilan",
+  },
+  {
+    id: "KB002", nama: "Pak Budi", hp: "085678901234", tanggal: "2026-05-12",
+    items: [
+      { nama: "Minyak Goreng 1L", qty: 3, subtotal: 51000 },
+      { nama: "Gula Pasir 1kg", qty: 2, subtotal: 28000 },
+    ],
+    totalHutang: 79000,
+    pembayaran: [{ id: "P003", tanggal: "2026-05-18", nominal: 79000 }],
+    status: "lunas",
+  },
+  {
+    id: "KB003", nama: "Bu Dewi", hp: "089012345678", tanggal: "2026-06-01",
+    items: [
+      { nama: "Indomie Goreng", qty: 10, subtotal: 35000 },
+      { nama: "Telur 1kg", qty: 2, subtotal: 50000 },
+    ],
+    totalHutang: 85000, pembayaran: [], status: "belum",
+  },
+  {
+    id: "KB004", nama: "Mas Agus", hp: "082345678901", tanggal: "2026-06-02",
+    items: [{ nama: "Beras 5kg", qty: 1, subtotal: 65000 }],
+    totalHutang: 65000,
+    pembayaran: [{ id: "P004", tanggal: "2026-06-03", nominal: 30000 }],
+    status: "cicilan",
+  },
+];
+
+const ADMIN = { nama: "Admin Warung", username: "admin", password: "admin123" };
+const USERS_DB = [{ ...ADMIN }];
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const fmt = (n) => "Rp" + Number(n).toLocaleString("id-ID");
+const today = () => new Date().toISOString().split("T")[0];
+const todayFmt = (d) => { const [y, m, dd] = d.split("-"); return `${dd}/${m}/${y}`; };
+const genId = (prefix) => prefix + Date.now().toString().slice(-6);
+
+// ─── STYLES ───────────────────────────────────────────────────────────────────
+const btnGreen = { background: "#2E7D32", color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", flex: 1 };
+const btnOutline = { background: "transparent", color: "#2E7D32", border: "1.5px solid #2E7D32", borderRadius: 8, padding: "9px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", flex: 1 };
+const btnDanger = { background: "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", flex: 1 };
+const inputStyle = { width: "100%", border: "1.5px solid #ccc", borderRadius: 8, padding: "9px 12px", fontSize: 14, outline: "none", boxSizing: "border-box" };
+const card = { background: "#fff", borderRadius: 12, border: "1px solid #e0e0e0", padding: "14px 16px", marginBottom: 10 };
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function Modal({ title, children, onClose, footer }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
+      <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 360, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
+        <div style={{ background: "#2E7D32", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>{title}</span>
+          {onClose && <button onClick={onClose} style={{ background: "none", border: "none", color: "#fff", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>×</button>}
+        </div>
+        <div style={{ padding: "16px 18px" }}>{children}</div>
+        {footer && <div style={{ padding: "0 18px 16px", display: "flex", gap: 10 }}>{footer}</div>}
+      </div>
+    </div>
+  );
+}
+
+function ConfirmModal({ msg, onYes, onNo }) {
+  return (
+    <Modal title="Konfirmasi" onClose={onNo} footer={<><button onClick={onNo} style={btnOutline}>Batal</button><button onClick={onYes} style={btnDanger}>Ya, Lanjutkan</button></>}>
+      <p style={{ margin: 0, fontSize: 14, color: "#333" }}>{msg}</p>
+    </Modal>
+  );
+}
+function SuccessModal({ msg, onClose }) {
+  return (
+    <Modal title="✓ Berhasil" onClose={onClose} footer={<button onClick={onClose} style={{ ...btnGreen, flex: 1 }}>OK</button>}>
+      <p style={{ margin: 0, fontSize: 14, color: "#333" }}>{msg}</p>
+    </Modal>
+  );
+}
+function ErrorModal({ msg, onClose }) {
+  return (
+    <Modal title="⚠ Error" onClose={onClose} footer={<button onClick={onClose} style={{ ...btnDanger, flex: 1 }}>Tutup</button>}>
+      <p style={{ margin: 0, fontSize: 14, color: "#333" }}>{msg}</p>
+    </Modal>
+  );
+}
+
+// ─── BADGE ────────────────────────────────────────────────────────────────────
+function Badge({ status }) {
+  const map = { belum: ["#ffebee", "#c0392b", "Belum Lunas"], cicilan: ["#fff3e0", "#e67e22", "Cicilan"], lunas: ["#e8f5e9", "#2E7D32", "Lunas"] };
+  const [bg, col, label] = map[status] || map.belum;
+  return <span style={{ background: bg, color: col, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>{label}</span>;
+}
+
+// ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
+function BottomNav({ active, setScreen }) {
+  const items = [
+    { id: "dashboard", label: "Beranda", icon: "🏠" },
+    { id: "penjualan", label: "Jual", icon: "🛒" },
+    { id: "kasbon", label: "Kasbon", icon: "📋" },
+    { id: "profil", label: "Profil", icon: "👤" },
+  ];
+  return (
+    <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 390, background: "#fff", borderTop: "1px solid #e0e0e0", display: "flex", zIndex: 100 }}>
+      {items.map((i) => (
+        <button key={i.id} onClick={() => setScreen(i.id)} style={{ flex: 1, border: "none", background: "none", padding: "8px 0 10px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+          <span style={{ fontSize: 20 }}>{i.icon}</span>
+          <span style={{ fontSize: 11, fontWeight: active === i.id ? 700 : 400, color: active === i.id ? "#2E7D32" : "#888" }}>{i.label}</span>
+          {active === i.id && <span style={{ width: 20, height: 3, background: "#2E7D32", borderRadius: 2 }} />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── TOP BAR ─────────────────────────────────────────────────────────────────
+function TopBar({ title, onBack, action }) {
+  return (
+    <div style={{ background: "#2E7D32", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 50 }}>
+      {onBack && <button onClick={onBack} style={{ background: "none", border: "none", color: "#fff", fontSize: 22, cursor: "pointer", lineHeight: 1 }}>‹</button>}
+      <span style={{ flex: 1, color: "#fff", fontWeight: 700, fontSize: 17 }}>{title}</span>
+      {action}
+    </div>
+  );
+}
+
+// ─── SPLASH ──────────────────────────────────────────────────────────────────
+function SplashScreen({ onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 2000); return () => clearTimeout(t); }, []);
+  return (
+    <div style={{ minHeight: "100vh", background: "#2E7D32", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
+      <div style={{ width: 90, height: 90, background: "#fff", borderRadius: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>🏪</div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ color: "#fff", fontSize: 28, fontWeight: 900, letterSpacing: 1 }}>WarungKu</div>
+        <div style={{ color: "#a5d6a7", fontSize: 13, marginTop: 6 }}>Kelola Penjualan dan Kasbon Lebih Mudah</div>
+      </div>
+      <div style={{ marginTop: 30, display: "flex", gap: 8 }}>
+        {[0, 1, 2].map((i) => <div key={i} style={{ width: i === 1 ? 20 : 8, height: 8, borderRadius: 4, background: i === 1 ? "#fff" : "#66bb6a" }} />)}
+      </div>
+    </div>
+  );
+}
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin, usersDb }) {
+  const [un, setUn] = useState("");
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [showReg, setShowReg] = useState(false);
+
+  function doLogin() {
+    if (!un.trim()) return setErr("Username tidak boleh kosong");
+    if (!pw.trim()) return setErr("Password tidak boleh kosong");
+    const u = usersDb.find((x) => x.username === un && x.password === pw);
+    if (!u) return setErr("Username atau password salah");
+    setErr(""); onLogin(u);
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "#2E7D32", padding: "40px 24px 32px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ width: 70, height: 70, background: "#fff", borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, marginBottom: 12 }}>🏪</div>
+        <div style={{ color: "#fff", fontSize: 22, fontWeight: 900 }}>WarungKu</div>
+      </div>
+      <div style={{ flex: 1, padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ ...card, marginBottom: 0 }}>
+          <h2 style={{ margin: "0 0 18px", fontSize: 18, color: "#2E7D32" }}>Masuk</h2>
+          <label style={{ fontSize: 13, color: "#555", display: "block", marginBottom: 4 }}>Username</label>
+          <input value={un} onChange={(e) => setUn(e.target.value)} style={inputStyle} placeholder="Masukkan username" />
+          <label style={{ fontSize: 13, color: "#555", display: "block", margin: "12px 0 4px" }}>Password</label>
+          <input value={pw} onChange={(e) => setPw(e.target.value)} type="password" style={inputStyle} placeholder="Masukkan password" />
+          {err && <p style={{ color: "#c0392b", fontSize: 12, margin: "8px 0 0" }}>{err}</p>}
+          <button onClick={doLogin} style={{ ...btnGreen, marginTop: 20, display: "block" }}>Masuk</button>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14 }}>
+            <button onClick={() => setShowForgot(true)} style={{ background: "none", border: "none", color: "#2E7D32", fontSize: 13, cursor: "pointer" }}>Lupa Password?</button>
+            <button onClick={() => setShowReg(true)} style={{ background: "none", border: "none", color: "#2E7D32", fontSize: 13, cursor: "pointer" }}>Daftar</button>
+          </div>
+        </div>
+      </div>
+      {showForgot && <ForgotModal usersDb={usersDb} onClose={() => setShowForgot(false)} />}
+      {showReg && <RegisterModal usersDb={usersDb} onClose={() => setShowReg(false)} />}
+    </div>
+  );
+}
+
+function ForgotModal({ usersDb, onClose }) {
+  const [step, setStep] = useState(1);
+  const [un, setUn] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [conf, setConf] = useState("");
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState(false);
+  function next() {
+    if (!un.trim()) return setErr("Username wajib diisi");
+    const u = usersDb.find((x) => x.username === un);
+    if (!u) return setErr("Username tidak ditemukan");
+    setErr(""); setStep(2);
+  }
+  function save() {
+    if (!newPw || newPw.length < 6) return setErr("Password min 6 karakter");
+    if (newPw !== conf) return setErr("Konfirmasi password tidak cocok");
+    const u = usersDb.find((x) => x.username === un);
+    if (u) u.password = newPw;
+    setErr(""); setDone(true);
+  }
+  return (
+    <Modal title="Lupa Password" onClose={onClose} footer={
+      done ? <button onClick={onClose} style={{ ...btnGreen, flex: 1 }}>OK</button>
+           : step === 1 ? <><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={next} style={btnGreen}>Lanjut</button></>
+           : <><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={save} style={btnGreen}>Simpan</button></>
+    }>
+      {done ? <p style={{ color: "#2E7D32", fontWeight: 700 }}>Password berhasil diubah!</p>
+            : step === 1 ? <>
+                <p style={{ margin: "0 0 12px", fontSize: 14, color: "#555" }}>Masukkan username akun Anda</p>
+                <input value={un} onChange={(e) => setUn(e.target.value)} style={inputStyle} placeholder="Username" />
+              </>
+            : <>
+                <p style={{ margin: "0 0 12px", fontSize: 14, color: "#555" }}>Buat password baru untuk <b>{un}</b></p>
+                <input value={newPw} onChange={(e) => setNewPw(e.target.value)} type="password" style={{ ...inputStyle, marginBottom: 10 }} placeholder="Password baru (min. 6 karakter)" />
+                <input value={conf} onChange={(e) => setConf(e.target.value)} type="password" style={inputStyle} placeholder="Konfirmasi password" />
+              </>}
+      {err && <p style={{ color: "#c0392b", fontSize: 12, margin: "8px 0 0" }}>{err}</p>}
+    </Modal>
+  );
+}
+
+function RegisterModal({ usersDb, onClose }) {
+  const [nama, setNama] = useState("");
+  const [un, setUn] = useState("");
+  const [pw, setPw] = useState("");
+  const [conf, setConf] = useState("");
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState(false);
+  function save() {
+    if (!nama.trim() || !un.trim() || !pw.trim()) return setErr("Semua field wajib diisi");
+    if (pw.length < 6) return setErr("Password min 6 karakter");
+    if (pw !== conf) return setErr("Konfirmasi password tidak cocok");
+    if (usersDb.find((x) => x.username === un)) return setErr("Username sudah digunakan");
+    usersDb.push({ nama, username: un, password: pw });
+    setDone(true);
+  }
+  return (
+    <Modal title="Daftar Akun" onClose={onClose} footer={
+      done ? <button onClick={onClose} style={{ ...btnGreen, flex: 1 }}>Masuk Sekarang</button>
+           : <><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={save} style={btnGreen}>Daftar</button></>
+    }>
+      {done ? <p style={{ color: "#2E7D32", fontWeight: 700 }}>Akun berhasil dibuat! Silakan login.</p>
+            : <>{[["Nama Lengkap", nama, setNama, "text"], ["Username", un, setUn, "text"], ["Password", pw, setPw, "password"], ["Konfirmasi Password", conf, setConf, "password"]].map(([label, val, setter, type]) => (
+                <div key={label} style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 13, color: "#555" }}>{label}</label>
+                  <input value={val} onChange={(e) => setter(e.target.value)} type={type} style={{ ...inputStyle, marginTop: 4 }} placeholder={label} />
+                </div>
+              ))}</>}
+      {err && <p style={{ color: "#c0392b", fontSize: 12, margin: "8px 0 0" }}>{err}</p>}
+    </Modal>
+  );
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function Dashboard({ barang, transaksi, kasbon, setScreen, admin }) {
+  const totalBarang = barang.length;
+  const todayStr = today();
+  const totalHariIni = transaksi.filter((t) => t.tanggal === todayStr).reduce((s, t) => s + t.total, 0);
+  const kasbonAktif = kasbon.filter((k) => k.status !== "lunas").length;
+  const totalPiutang = kasbon.filter((k) => k.status !== "lunas").reduce((s, k) => s + (k.totalHutang - k.pembayaran.reduce((a, p) => a + p.nominal, 0)), 0);
+  const menus = [
+    { label: "Data Barang", icon: "📦", screen: "barang" },
+    { label: "Penjualan", icon: "🛒", screen: "penjualan" },
+    { label: "Kasbon", icon: "📋", screen: "kasbon" },
+    { label: "Laporan", icon: "📊", screen: "laporan" },
+    { label: "Profil", icon: "👤", screen: "profil" },
+  ];
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f0", paddingBottom: 70 }}>
+      <div style={{ background: "#2E7D32", padding: "20px 18px 28px" }}>
+        <p style={{ color: "#a5d6a7", fontSize: 13, margin: 0 }}>Selamat datang,</p>
+        <h2 style={{ color: "#fff", margin: "2px 0 0", fontSize: 20, fontWeight: 900 }}>Halo, {admin?.nama} 👋</h2>
+      </div>
+      <div style={{ margin: "-18px 14px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {[["Total Barang", totalBarang + " item", "📦"], ["Penjualan Hari Ini", fmt(totalHariIni), "💰"], ["Kasbon Aktif", kasbonAktif + " kasbon", "📋"], ["Total Piutang", fmt(totalPiutang), "💳"]].map(([label, val, icon]) => (
+          <div key={label} style={{ background: "#fff", borderRadius: 12, padding: "14px 14px", border: "1px solid #e0e0e0" }}>
+            <div style={{ fontSize: 22, marginBottom: 4 }}>{icon}</div>
+            <div style={{ fontSize: 11, color: "#777" }}>{label}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#2E7D32", marginTop: 2 }}>{val}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: "20px 14px 8px" }}>
+        <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 15, color: "#333" }}>Menu Utama</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          {menus.map((m) => (
+            <button key={m.screen} onClick={() => setScreen(m.screen)} style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: 12, padding: "16px 8px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 28 }}>{m.icon}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#333", textAlign: "center" }}>{m.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DATA BARANG ─────────────────────────────────────────────────────────────
+function DataBarang({ barang, setBarang, setScreen }) {
+  const [q, setQ] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
+  const [success, setSuccess] = useState("");
+  const filtered = barang.filter((b) => b.nama.toLowerCase().includes(q.toLowerCase()));
+  function confirmDelete() { setBarang((prev) => prev.filter((b) => b.id !== toDelete.id)); setToDelete(null); setSuccess("Barang berhasil dihapus"); }
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f0", paddingBottom: 80 }}>
+      <TopBar title="Data Barang" onBack={() => setScreen("dashboard")} />
+      <div style={{ padding: "14px 14px 0" }}>
+        <div style={{ position: "relative" }}>
+          <input value={q} onChange={(e) => setQ(e.target.value)} style={{ ...inputStyle, paddingLeft: 36 }} placeholder="Cari barang..." />
+          <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 18 }}>🔍</span>
+        </div>
+      </div>
+      <div style={{ padding: "12px 14px" }}>
+        {filtered.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>Tidak ada barang</div>}
+        {filtered.map((b) => (
+          <div key={b.id} style={{ ...card, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 42, height: 42, background: "#e8f5e9", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>📦</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{b.nama}</div>
+              <div style={{ fontSize: 13, color: "#2E7D32", fontWeight: 700 }}>{fmt(b.harga)}</div>
+              <div style={{ fontSize: 12, color: "#777" }}>Stok: {b.stok}</div>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setEditItem(b)} style={{ background: "#e3f2fd", border: "none", borderRadius: 8, width: 34, height: 34, cursor: "pointer", fontSize: 16 }}>✏️</button>
+              <button onClick={() => setToDelete(b)} style={{ background: "#ffebee", border: "none", borderRadius: 8, width: 34, height: 34, cursor: "pointer", fontSize: 16 }}>🗑️</button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button onClick={() => setShowAdd(true)} style={{ position: "fixed", bottom: 80, right: 20, width: 54, height: 54, borderRadius: "50%", background: "#2E7D32", border: "none", color: "#fff", fontSize: 28, cursor: "pointer", zIndex: 90, boxShadow: "0 4px 16px rgba(46,125,50,0.4)" }}>+</button>
+      {showAdd && <BarangForm onClose={() => setShowAdd(false)} onSave={(data) => { setBarang((prev) => [...prev, { ...data, id: Date.now() }]); setShowAdd(false); setSuccess("Barang berhasil ditambahkan"); }} />}
+      {editItem && <BarangForm item={editItem} onClose={() => setEditItem(null)} onSave={(data) => { setBarang((prev) => prev.map((b) => (b.id === editItem.id ? { ...b, ...data } : b))); setEditItem(null); setSuccess("Barang berhasil diperbarui"); }} />}
+      {toDelete && <ConfirmModal msg={`Hapus barang "${toDelete.nama}"? Tindakan ini tidak bisa dibatalkan.`} onYes={confirmDelete} onNo={() => setToDelete(null)} />}
+      {success && <SuccessModal msg={success} onClose={() => setSuccess("")} />}
+    </div>
+  );
+}
+
+function BarangForm({ item, onClose, onSave }) {
+  const [nama, setNama] = useState(item?.nama || "");
+  const [harga, setHarga] = useState(item?.harga?.toString() || "");
+  const [stok, setStok] = useState(item?.stok?.toString() || "");
+  const [err, setErr] = useState({});
+  function validate() {
+    const e = {};
+    if (!nama.trim()) e.nama = "Nama barang wajib diisi";
+    if (!harga || isNaN(harga) || +harga < 0) e.harga = "Harga tidak valid";
+    if (!stok || isNaN(stok) || +stok < 0) e.stok = "Stok tidak valid";
+    return e;
+  }
+  function handleSave() { const e = validate(); if (Object.keys(e).length) return setErr(e); onSave({ nama: nama.trim(), harga: +harga, stok: +stok }); }
+  return (
+    <Modal title={item ? "Edit Barang" : "Tambah Barang"} onClose={onClose} footer={<><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={handleSave} style={btnGreen}>Simpan</button></>}>
+      {[["Nama Barang", nama, setNama, "text", "Contoh: Beras 5kg", "nama"], ["Harga (Rp)", harga, setHarga, "number", "Contoh: 65000", "harga"], ["Stok", stok, setStok, "number", "Contoh: 20", "stok"]].map(([label, val, setter, type, ph, key]) => (
+        <div key={label} style={{ marginBottom: 12 }}>
+          <label style={{ fontSize: 13, color: "#555" }}>{label}</label>
+          <input value={val} onChange={(e) => setter(e.target.value)} type={type} style={{ ...inputStyle, marginTop: 4, borderColor: err[key] ? "#c0392b" : "#ccc" }} placeholder={ph} />
+          {err[key] && <p style={{ color: "#c0392b", fontSize: 11, margin: "3px 0 0" }}>{err[key]}</p>}
+        </div>
+      ))}
+    </Modal>
+  );
+}
+
+// ─── PENJUALAN ────────────────────────────────────────────────────────────────
+function Penjualan({ barang, setBarang, transaksi, setTransaksi, setScreen }) {
+  const [cart, setCart] = useState([]);
+  const [selBarang, setSelBarang] = useState("");
+  const [qty, setQty] = useState("");
+  const [err, setErr] = useState("");
+  const [showStruk, setShowStruk] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [errModal, setErrModal] = useState("");
+
+  function addToCart() {
+    if (!selBarang) return setErr("Pilih barang terlebih dahulu");
+    if (!qty || +qty <= 0) return setErr("Jumlah harus lebih dari 0");
+    const b = barang.find((x) => x.id === +selBarang);
+    if (!b) return;
+    if (+qty > b.stok) return setErr(`Stok tidak cukup. Stok tersedia: ${b.stok}`);
+    const exist = cart.find((c) => c.barangId === b.id);
+    if (exist) {
+      const totalQty = exist.qty + +qty;
+      if (totalQty > b.stok) return setErr(`Stok tidak cukup`);
+      setCart((prev) => prev.map((c) => c.barangId === b.id ? { ...c, qty: totalQty, subtotal: totalQty * b.harga } : c));
+    } else {
+      setCart((prev) => [...prev, { barangId: b.id, nama: b.nama, harga: b.harga, qty: +qty, subtotal: +qty * b.harga }]);
+    }
+    setErr(""); setSelBarang(""); setQty("");
+  }
+
+  function simpanTransaksi() {
+    if (cart.length === 0) return setErrModal("Tambahkan barang ke keranjang terlebih dahulu");
+    const total = cart.reduce((s, c) => s + c.subtotal, 0);
+    const trx = { id: genId("TRX"), tanggal: today(), items: [...cart], total };
+    setTransaksi((prev) => [trx, ...prev]);
+    setBarang((prev) => prev.map((b) => { const item = cart.find((c) => c.barangId === b.id); return item ? { ...b, stok: b.stok - item.qty } : b; }));
+    setShowStruk(trx); setCart([]);
+  }
+
+  const total = cart.reduce((s, c) => s + c.subtotal, 0);
+  if (showHistory) return <RiwayatTransaksi transaksi={transaksi} onBack={() => setShowHistory(false)} />;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f0", paddingBottom: 80 }}>
+      <TopBar title="Transaksi Penjualan" onBack={() => setScreen("dashboard")} action={<button onClick={() => setShowHistory(true)} style={{ background: "none", border: "none", color: "#fff", fontSize: 22, cursor: "pointer" }}>📜</button>} />
+      <div style={{ padding: 14 }}>
+        <div style={card}>
+          <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 14 }}>Tambah Barang</p>
+          <select value={selBarang} onChange={(e) => setSelBarang(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
+            <option value="">-- Pilih Barang --</option>
+            {barang.filter((b) => b.stok > 0).map((b) => <option key={b.id} value={b.id}>{b.nama} - {fmt(b.harga)} (Stok: {b.stok})</option>)}
+          </select>
+          <input value={qty} onChange={(e) => setQty(e.target.value)} type="number" style={{ ...inputStyle, marginBottom: 10 }} placeholder="Jumlah" min="1" />
+          {err && <p style={{ color: "#c0392b", fontSize: 12, margin: "0 0 8px" }}>{err}</p>}
+          <button onClick={addToCart} style={{ ...btnGreen }}>+ Tambah ke Keranjang</button>
+        </div>
+        {cart.length > 0 && (
+          <div style={card}>
+            <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 14 }}>Keranjang</p>
+            {cart.map((c) => (
+              <div key={c.barangId} style={{ display: "flex", alignItems: "center", paddingBottom: 10, marginBottom: 10, borderBottom: "1px solid #f0f0f0" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{c.nama}</div>
+                  <div style={{ fontSize: 12, color: "#777" }}>{c.qty} × {fmt(c.harga)}</div>
+                </div>
+                <div style={{ fontWeight: 700, color: "#2E7D32", marginRight: 12 }}>{fmt(c.subtotal)}</div>
+                <button onClick={() => setCart((prev) => prev.filter((x) => x.barangId !== c.barangId))} style={{ background: "#ffebee", border: "none", borderRadius: 6, width: 28, height: 28, cursor: "pointer", fontSize: 14 }}>✕</button>
+              </div>
+            ))}
+            <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 6 }}>
+              <span style={{ fontWeight: 700 }}>Total</span>
+              <span style={{ fontWeight: 900, fontSize: 17, color: "#2E7D32" }}>{fmt(total)}</span>
+            </div>
+            <button onClick={simpanTransaksi} style={{ ...btnGreen, marginTop: 16 }}>💾 Simpan Transaksi</button>
+          </div>
+        )}
+      </div>
+      {showStruk && <StrukModal trx={showStruk} onClose={() => setShowStruk(null)} />}
+      {errModal && <ErrorModal msg={errModal} onClose={() => setErrModal("")} />}
+    </div>
+  );
+}
+
+function StrukModal({ trx, onClose }) {
+  function cetakStruk() {
+    const lines = [`==============================`, `         WARUNGKU`, `==============================`, `No: ${trx.id}`, `Tgl: ${todayFmt(trx.tanggal)}`, `------------------------------`, ...trx.items.map((i) => `${i.nama}\n  ${i.qty} x ${fmt(i.harga)} = ${fmt(i.subtotal)}`), `------------------------------`, `TOTAL: ${fmt(trx.total)}`, `==============================`, `   Terima kasih sudah belanja!`].join("\n");
+    alert("🧾 STRUK BELANJA\n\n" + lines);
+  }
+  return (
+    <Modal title="✓ Transaksi Berhasil" footer={<><button onClick={cetakStruk} style={btnOutline}>🖨️ Cetak Struk</button><button onClick={onClose} style={btnGreen}>Selesai</button></>}>
+      <div style={{ fontSize: 12, fontFamily: "monospace", background: "#f9f9f9", padding: 12, borderRadius: 8 }}>
+        <div style={{ textAlign: "center", fontWeight: 700, marginBottom: 8 }}>WARUNGKU</div>
+        <div style={{ color: "#777", marginBottom: 8 }}>No: {trx.id}<br />Tgl: {todayFmt(trx.tanggal)}</div>
+        <div style={{ borderTop: "1px dashed #ccc", paddingTop: 8 }}>
+          {trx.items.map((i) => (
+            <div key={i.barangId} style={{ marginBottom: 6 }}>
+              <div style={{ fontWeight: 700 }}>{i.nama}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#555" }}><span>{i.qty} × {fmt(i.harga)}</span><span>{fmt(i.subtotal)}</span></div>
+            </div>
+          ))}
+        </div>
+        <div style={{ borderTop: "1px dashed #ccc", paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 900 }}><span>TOTAL</span><span style={{ color: "#2E7D32" }}>{fmt(trx.total)}</span></div>
+        <div style={{ textAlign: "center", marginTop: 10, color: "#777" }}>Terima kasih!</div>
+      </div>
+    </Modal>
+  );
+}
+
+function RiwayatTransaksi({ transaksi, onBack }) {
+  const [detail, setDetail] = useState(null);
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f0", paddingBottom: 80 }}>
+      <TopBar title="Riwayat Penjualan" onBack={onBack} />
+      <div style={{ padding: 14 }}>
+        {transaksi.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>Belum ada transaksi</div>}
+        {transaksi.map((t) => (
+          <div key={t.id} onClick={() => setDetail(t)} style={{ ...card, cursor: "pointer" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: 14 }}>{t.id}</span>
+              <span style={{ color: "#2E7D32", fontWeight: 700 }}>{fmt(t.total)}</span>
+            </div>
+            <div style={{ fontSize: 12, color: "#777" }}>{todayFmt(t.tanggal)} · {t.items.length} item</div>
+          </div>
+        ))}
+      </div>
+      {detail && (
+        <Modal title="Detail Transaksi" onClose={() => setDetail(null)} footer={<><button onClick={() => { alert("🧾 STRUK\n\nNo: " + detail.id); }} style={btnOutline}>🖨️ Cetak</button><button onClick={() => setDetail(null)} style={btnGreen}>Tutup</button></>}>
+          <div style={{ fontSize: 13 }}>
+            <div style={{ marginBottom: 8 }}><b>ID:</b> {detail.id} &nbsp;|&nbsp; <b>Tgl:</b> {todayFmt(detail.tanggal)}</div>
+            {detail.items.map((i) => (
+              <div key={i.barangId} style={{ display: "flex", justifyContent: "space-between", paddingBottom: 6, marginBottom: 6, borderBottom: "1px solid #f0f0f0" }}>
+                <div><div style={{ fontWeight: 700 }}>{i.nama}</div><div style={{ color: "#777", fontSize: 12 }}>{i.qty} × {fmt(i.harga)}</div></div>
+                <div style={{ fontWeight: 700, color: "#2E7D32" }}>{fmt(i.subtotal)}</div>
+              </div>
+            ))}
+            <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 4, fontWeight: 900 }}><span>Total</span><span style={{ color: "#2E7D32", fontSize: 16 }}>{fmt(detail.total)}</span></div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ─── KASBON ───────────────────────────────────────────────────────────────────
+function DataKasbon({ kasbon, setKasbon, barang, setScreen }) {
+  const [q, setQ] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [detail, setDetail] = useState(null);
+  const [success, setSuccess] = useState("");
+  const sorted = [...kasbon].sort((a, b) => { if (a.status === "lunas" && b.status !== "lunas") return 1; if (a.status !== "lunas" && b.status === "lunas") return -1; return 0; }).filter((k) => k.nama.toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f0", paddingBottom: 80 }}>
+      <TopBar title="Data Kasbon" onBack={() => setScreen("dashboard")} />
+      <div style={{ padding: "14px 14px 0" }}>
+        <div style={{ position: "relative" }}>
+          <input value={q} onChange={(e) => setQ(e.target.value)} style={{ ...inputStyle, paddingLeft: 36 }} placeholder="Cari nama pelanggan..." />
+          <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 18 }}>🔍</span>
+        </div>
+      </div>
+      <div style={{ padding: "12px 14px" }}>
+        {sorted.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>Tidak ada kasbon</div>}
+        {sorted.map((k) => {
+          const totalBayar = k.pembayaran.reduce((s, p) => s + p.nominal, 0);
+          const sisa = k.totalHutang - totalBayar;
+          return (
+            <div key={k.id} onClick={() => setDetail(k)} style={{ ...card, cursor: "pointer" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                <span style={{ fontWeight: 700, fontSize: 15 }}>{k.nama}</span>
+                <Badge status={k.status} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                <span style={{ color: "#777" }}>Hutang: {fmt(k.totalHutang)}</span>
+                <span style={{ color: "#c0392b", fontWeight: 700 }}>Sisa: {fmt(sisa)}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <button onClick={() => setShowAdd(true)} style={{ position: "fixed", bottom: 80, right: 20, width: 54, height: 54, borderRadius: "50%", background: "#2E7D32", border: "none", color: "#fff", fontSize: 28, cursor: "pointer", zIndex: 90, boxShadow: "0 4px 16px rgba(46,125,50,0.4)" }}>+</button>
+      {showAdd && <TambahKasbon barang={barang} onClose={() => setShowAdd(false)} onSave={(data) => { setKasbon((prev) => [data, ...prev]); setShowAdd(false); setSuccess("Kasbon berhasil ditambahkan"); }} />}
+      {detail && <DetailKasbon kasbon={detail} allKasbon={kasbon} setKasbon={setKasbon} onClose={() => setDetail(null)} />}
+      {success && <SuccessModal msg={success} onClose={() => setSuccess("")} />}
+    </div>
+  );
+}
+
+function TambahKasbon({ barang, onClose, onSave }) {
+  const [nama, setNama] = useState("");
+  const [hp, setHp] = useState("");
+  const [items, setItems] = useState([{ barangId: "", qty: "" }]);
+  const [err, setErr] = useState({});
+  function total() { return items.reduce((s, item) => { const b = barang.find((x) => x.id === +item.barangId); return s + (b && item.qty ? b.harga * +item.qty : 0); }, 0); }
+  function save() {
+    const e = {};
+    if (!nama.trim()) e.nama = "Nama wajib diisi";
+    if (!hp.trim()) e.hp = "HP wajib diisi";
+    const validItems = items.filter((i) => i.barangId && i.qty && +i.qty > 0);
+    if (validItems.length === 0) e.items = "Tambahkan minimal satu barang";
+    if (Object.keys(e).length) return setErr(e);
+    const kasbonItems = validItems.map((i) => { const b = barang.find((x) => x.id === +i.barangId); return { nama: b.nama, qty: +i.qty, subtotal: b.harga * +i.qty }; });
+    onSave({ id: genId("KB"), nama, hp, tanggal: today(), items: kasbonItems, totalHutang: kasbonItems.reduce((s, i) => s + i.subtotal, 0), pembayaran: [], status: "belum" });
+  }
+  return (
+    <Modal title="Tambah Kasbon" onClose={onClose} footer={<><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={save} style={btnGreen}>Simpan</button></>}>
+      <div style={{ marginBottom: 10 }}>
+        <label style={{ fontSize: 13, color: "#555" }}>Nama Pelanggan</label>
+        <input value={nama} onChange={(e) => setNama(e.target.value)} style={{ ...inputStyle, marginTop: 4, borderColor: err.nama ? "#c0392b" : "#ccc" }} placeholder="Contoh: Ibu Sari" />
+        {err.nama && <p style={{ color: "#c0392b", fontSize: 11, margin: "3px 0 0" }}>{err.nama}</p>}
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <label style={{ fontSize: 13, color: "#555" }}>Nomor HP</label>
+        <input value={hp} onChange={(e) => setHp(e.target.value)} style={{ ...inputStyle, marginTop: 4, borderColor: err.hp ? "#c0392b" : "#ccc" }} placeholder="08xxxxxxxxxx" />
+        {err.hp && <p style={{ color: "#c0392b", fontSize: 11, margin: "3px 0 0" }}>{err.hp}</p>}
+      </div>
+      <p style={{ fontSize: 13, fontWeight: 700, margin: "10px 0 6px" }}>Barang</p>
+      {items.map((item, idx) => (
+        <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
+          <select value={item.barangId} onChange={(e) => setItems((prev) => prev.map((it, i) => i === idx ? { ...it, barangId: e.target.value } : it))} style={{ ...inputStyle, flex: 2 }}>
+            <option value="">-- Pilih --</option>
+            {barang.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}
+          </select>
+          <input value={item.qty} onChange={(e) => setItems((prev) => prev.map((it, i) => i === idx ? { ...it, qty: e.target.value } : it))} type="number" style={{ ...inputStyle, flex: 1 }} placeholder="Qty" min="1" />
+          {items.length > 1 && <button onClick={() => setItems((prev) => prev.filter((_, i) => i !== idx))} style={{ background: "#ffebee", border: "none", borderRadius: 6, width: 30, height: 36, cursor: "pointer", flexShrink: 0, fontSize: 14 }}>✕</button>}
+        </div>
+      ))}
+      {err.items && <p style={{ color: "#c0392b", fontSize: 11, margin: "0 0 6px" }}>{err.items}</p>}
+      <button onClick={() => setItems((prev) => [...prev, { barangId: "", qty: "" }])} style={{ ...btnOutline, marginBottom: 12 }}>+ Barang Lagi</button>
+      <div style={{ background: "#e8f5e9", borderRadius: 8, padding: "10px 14px", display: "flex", justifyContent: "space-between" }}>
+        <span style={{ fontWeight: 700 }}>Total Hutang:</span>
+        <span style={{ fontWeight: 900, color: "#2E7D32" }}>{fmt(total())}</span>
+      </div>
+    </Modal>
+  );
+}
+
+function DetailKasbon({ kasbon: k, allKasbon, setKasbon, onClose }) {
+  const [showBayar, setShowBayar] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const updated = allKasbon.find((x) => x.id === k.id) || k;
+  const updatedTotalBayar = updated.pembayaran.reduce((s, p) => s + p.nominal, 0);
+  const updatedSisa = updated.totalHutang - updatedTotalBayar;
+
+  function handleBayar(nominal) {
+    const newBayar = { id: genId("P"), tanggal: today(), nominal };
+    const newTotal = updatedTotalBayar + nominal;
+    const newStatus = updated.totalHutang - newTotal <= 0 ? "lunas" : "cicilan";
+    setKasbon((prev) => prev.map((kb) => kb.id === k.id ? { ...kb, pembayaran: [...kb.pembayaran, newBayar], status: newStatus } : kb));
+    setShowBayar(false);
+  }
+
+  return (
+    <>
+      <Modal title="Detail Kasbon" onClose={onClose} footer={<><button onClick={() => setShowHistory(true)} style={btnOutline}>📜 Riwayat</button>{updated.status !== "lunas" && <button onClick={() => setShowBayar(true)} style={btnGreen}>💳 Bayar</button>}</>}>
+        <div style={{ fontSize: 14 }}>
+          {[["Pelanggan", updated.nama, "#222"], ["HP", updated.hp, "#555"], ["Tanggal", todayFmt(updated.tanggal), "#555"]].map(([label, val, col]) => (
+            <div key={label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+              <span style={{ color: "#777" }}>{label}</span><span style={{ fontWeight: 700, color: col }}>{val}</span>
+            </div>
+          ))}
+          <div style={{ borderTop: "1px solid #f0f0f0", margin: "10px 0", paddingTop: 10 }}>
+            {updated.items.map((i, idx) => <div key={idx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 13 }}><span>{i.nama} ×{i.qty}</span><span style={{ fontWeight: 700 }}>{fmt(i.subtotal)}</span></div>)}
+          </div>
+          <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 10 }}>
+            {[["Total Hutang", fmt(updated.totalHutang), "#222"], ["Total Bayar", fmt(updatedTotalBayar), "#2E7D32"], ["Sisa Hutang", fmt(updatedSisa), "#c0392b"]].map(([label, val, col]) => (
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: "#777" }}>{label}</span><span style={{ fontWeight: 700, color: col }}>{val}</span></div>
+            ))}
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}><span style={{ color: "#777" }}>Status</span><Badge status={updated.status} /></div>
+          </div>
+        </div>
+      </Modal>
+      {showBayar && <PembayaranKasbon kasbon={updated} onClose={() => setShowBayar(false)} onSave={handleBayar} />}
+      {showHistory && (
+        <Modal title="Riwayat Pembayaran" onClose={() => setShowHistory(false)} footer={<button onClick={() => setShowHistory(false)} style={{ ...btnGreen, flex: 1 }}>Tutup</button>}>
+          {updated.pembayaran.length === 0 ? <p style={{ color: "#aaa", fontSize: 13 }}>Belum ada pembayaran</p>
+          : <div>
+              {updated.pembayaran.map((p, idx) => (
+                <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}>
+                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                    <div style={{ width: 32, height: 32, background: "#e8f5e9", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>💰</div>
+                    <div><div style={{ fontSize: 12, color: "#777" }}>{todayFmt(p.tanggal)}</div><div style={{ fontWeight: 700, fontSize: 14, color: "#2E7D32" }}>{fmt(p.nominal)}</div></div>
+                  </div>
+                  <span style={{ fontSize: 12, color: "#aaa" }}>#{idx + 1}</span>
+                </div>
+              ))}
+              <div style={{ paddingTop: 10, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Total Dibayar</span><span style={{ color: "#2E7D32" }}>{fmt(updated.pembayaran.reduce((s, p) => s + p.nominal, 0))}</span></div>
+            </div>}
+        </Modal>
+      )}
+    </>
+  );
+}
+
+function PembayaranKasbon({ kasbon: k, onClose, onSave }) {
+  const totalBayar = k.pembayaran.reduce((s, p) => s + p.nominal, 0);
+  const sisa = k.totalHutang - totalBayar;
+  const [nominal, setNominal] = useState("");
+  const [err, setErr] = useState("");
+  const nominalNum = +nominal || 0;
+  const sisBaru = Math.max(0, sisa - nominalNum);
+  const statusBaru = sisBaru === 0 ? "lunas" : nominalNum > 0 ? "cicilan" : k.status;
+  function save() {
+    if (!nominal || nominalNum <= 0) return setErr("Nominal harus lebih dari 0");
+    if (nominalNum > sisa) return setErr(`Nominal melebihi sisa hutang (${fmt(sisa)})`);
+    onSave(nominalNum);
+  }
+  return (
+    <Modal title="Bayar Kasbon" onClose={onClose} footer={<><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={save} style={btnGreen}>Simpan</button></>}>
+      <div style={{ marginBottom: 10, fontSize: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: "#777" }}>Pelanggan</span><b>{k.nama}</b></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: "#777" }}>Sisa Hutang</span><b style={{ color: "#c0392b" }}>{fmt(sisa)}</b></div>
+      </div>
+      <label style={{ fontSize: 13, color: "#555" }}>Nominal Pembayaran (Rp)</label>
+      <input value={nominal} onChange={(e) => setNominal(e.target.value)} type="number" style={{ ...inputStyle, marginTop: 4 }} placeholder="Contoh: 50000" min="1" />
+      {err && <p style={{ color: "#c0392b", fontSize: 12, margin: "6px 0 0" }}>{err}</p>}
+      {nominalNum > 0 && (
+        <div style={{ background: "#f5f5f5", borderRadius: 8, padding: "10px 14px", marginTop: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span>Sisa setelah bayar</span><b style={{ color: sisBaru > 0 ? "#e67e22" : "#2E7D32" }}>{fmt(sisBaru)}</b></div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span>Status baru</span><Badge status={statusBaru} /></div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// ─── LAPORAN ──────────────────────────────────────────────────────────────────
+function Laporan({ transaksi, kasbon, setScreen }) {
+  const [tab, setTab] = useState("penjualan");
+  const [filter, setFilter] = useState("harian");
+  const todayStr = today();
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+  const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0];
+  const cutoff = filter === "harian" ? todayStr : filter === "mingguan" ? weekAgo : monthAgo;
+  const filtered = transaksi.filter((t) => t.tanggal >= cutoff);
+  const totalPendapatan = filtered.reduce((s, t) => s + t.total, 0);
+  const kasbonAktif = kasbon.filter((k) => k.status !== "lunas");
+  const totalPiutang = kasbonAktif.reduce((s, k) => s + k.totalHutang - k.pembayaran.reduce((a, p) => a + p.nominal, 0), 0);
+  const lunasCount = kasbon.filter((k) => k.status === "lunas").length;
+  const belumCount = kasbon.filter((k) => k.status === "belum").length;
+  const cicilanCount = kasbon.filter((k) => k.status === "cicilan").length;
+  const maxTotal = Math.max(...filtered.map((t) => t.total), 1);
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f0", paddingBottom: 80 }}>
+      <TopBar title="Laporan" onBack={() => setScreen("dashboard")} />
+      <div style={{ display: "flex", margin: "12px 14px 0", background: "#e8f5e9", borderRadius: 10, padding: 4 }}>
+        {[["penjualan", "📈 Penjualan"], ["kasbon", "📋 Kasbon"]].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 8, background: tab === id ? "#2E7D32" : "transparent", color: tab === id ? "#fff" : "#2E7D32", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{label}</button>
+        ))}
+      </div>
+      {tab === "penjualan" && (
+        <div style={{ padding: 14 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            {[["harian", "Hari Ini"], ["mingguan", "7 Hari"], ["bulanan", "30 Hari"]].map(([v, l]) => (
+              <button key={v} onClick={() => setFilter(v)} style={{ flex: 1, padding: "8px 4px", border: `2px solid ${filter === v ? "#2E7D32" : "#ddd"}`, borderRadius: 8, background: filter === v ? "#e8f5e9" : "#fff", color: filter === v ? "#2E7D32" : "#777", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{l}</button>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+            <div style={{ background: "#fff", borderRadius: 12, padding: 14, border: "1px solid #e0e0e0" }}><div style={{ fontSize: 11, color: "#777" }}>Total Transaksi</div><div style={{ fontSize: 22, fontWeight: 900, color: "#2E7D32" }}>{filtered.length}</div></div>
+            <div style={{ background: "#fff", borderRadius: 12, padding: 14, border: "1px solid #e0e0e0" }}><div style={{ fontSize: 11, color: "#777" }}>Total Pendapatan</div><div style={{ fontSize: 16, fontWeight: 900, color: "#2E7D32" }}>{fmt(totalPendapatan)}</div></div>
+          </div>
+          <div style={{ ...card }}>
+            <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>Grafik Transaksi</p>
+            {filtered.length === 0 ? <p style={{ color: "#aaa", fontSize: 13, textAlign: "center", padding: "20px 0" }}>Tidak ada data</p>
+            : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {filtered.slice(0, 7).map((t) => (
+                  <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 11, color: "#777", width: 52, flexShrink: 0 }}>{todayFmt(t.tanggal)}</span>
+                    <div style={{ flex: 1, background: "#f0f0f0", borderRadius: 4, height: 20, overflow: "hidden" }}><div style={{ width: `${(t.total / maxTotal) * 100}%`, background: "#2E7D32", height: "100%", borderRadius: 4, minWidth: 4 }} /></div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#2E7D32", width: 70, textAlign: "right" }}>{fmt(t.total)}</span>
+                  </div>
+                ))}
+              </div>}
+          </div>
+          <div style={card}>
+            <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 14 }}>Daftar Transaksi</p>
+            {filtered.length === 0 ? <p style={{ color: "#aaa", fontSize: 13 }}>Tidak ada data</p>
+            : filtered.map((t) => (
+                <div key={t.id} style={{ display: "flex", justifyContent: "space-between", paddingBottom: 8, marginBottom: 8, borderBottom: "1px solid #f5f5f5", fontSize: 13 }}>
+                  <div><div style={{ fontWeight: 700 }}>{t.id}</div><div style={{ color: "#777", fontSize: 11 }}>{todayFmt(t.tanggal)}</div></div>
+                  <div style={{ fontWeight: 700, color: "#2E7D32" }}>{fmt(t.total)}</div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+      {tab === "kasbon" && (
+        <div style={{ padding: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+            {[["Kasbon Aktif", kasbonAktif.length, "#2E7D32"], ["Total Piutang", fmt(totalPiutang), "#c0392b"], ["Lunas", lunasCount, "#2E7D32"], ["Belum Lunas", belumCount + cicilanCount, "#e67e22"]].map(([label, val, col]) => (
+              <div key={label} style={{ background: "#fff", borderRadius: 12, padding: 14, border: "1px solid #e0e0e0" }}><div style={{ fontSize: 11, color: "#777" }}>{label}</div><div style={{ fontSize: 18, fontWeight: 900, color: col }}>{val}</div></div>
+            ))}
+          </div>
+          <div style={card}>
+            <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>Status Kasbon</p>
+            {[["Lunas", lunasCount, "#2E7D32"], ["Cicilan", cicilanCount, "#e67e22"], ["Belum Lunas", belumCount, "#c0392b"]].map(([label, count, col]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ fontSize: 12, width: 70, color: "#555" }}>{label}</span>
+                <div style={{ flex: 1, background: "#f0f0f0", borderRadius: 4, height: 20 }}><div style={{ width: kasbon.length ? `${(count / kasbon.length) * 100}%` : "0%", background: col, height: "100%", borderRadius: 4, minWidth: count ? 4 : 0 }} /></div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: col, width: 20, textAlign: "right" }}>{count}</span>
+              </div>
+            ))}
+          </div>
+          <div style={card}>
+            <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 14 }}>Daftar Kasbon</p>
+            {kasbon.map((k) => { const tb = k.pembayaran.reduce((s, p) => s + p.nominal, 0); const sisa = k.totalHutang - tb; return (
+              <div key={k.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 8, marginBottom: 8, borderBottom: "1px solid #f5f5f5", fontSize: 13 }}>
+                <div><div style={{ fontWeight: 700 }}>{k.nama}</div><div style={{ color: "#777", fontSize: 11 }}>Sisa: {fmt(sisa)}</div></div>
+                <Badge status={k.status} />
+              </div>
+            ); })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── PROFIL ───────────────────────────────────────────────────────────────────
+function Profil({ admin, setAdmin, onLogout }) {
+  const [showEdit, setShowEdit] = useState(false);
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [success, setSuccess] = useState("");
+  return (
+    <div style={{ minHeight: "100vh", background: "#f0f4f0", paddingBottom: 80 }}>
+      <TopBar title="Profil" />
+      <div style={{ padding: 14 }}>
+        <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px" }}>
+          <div style={{ width: 70, height: 70, background: "#e8f5e9", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, marginBottom: 12 }}>👤</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#222" }}>{admin.nama}</div>
+          <div style={{ fontSize: 14, color: "#777", marginTop: 4 }}>@{admin.username}</div>
+        </div>
+        <div style={{ ...card }}>
+          {[{ icon: "✏️", label: "Edit Profil", action: () => setShowEdit(true) }, { icon: "🔑", label: "Ganti Password", action: () => setShowChangePw(true) }, { icon: "🚪", label: "Logout", action: () => setConfirmLogout(true), danger: true }].map((item) => (
+            <button key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", gap: 14, width: "100%", padding: "14px 0", border: "none", background: "none", cursor: "pointer", borderBottom: "1px solid #f0f0f0" }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <span style={{ fontSize: 15, fontWeight: 600, color: item.danger ? "#c0392b" : "#222" }}>{item.label}</span>
+              <span style={{ marginLeft: "auto", color: "#ccc", fontSize: 18 }}>›</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      {showEdit && <EditProfil admin={admin} onClose={() => setShowEdit(false)} onSave={(data) => { setAdmin((prev) => ({ ...prev, ...data })); setShowEdit(false); setSuccess("Profil berhasil diperbarui"); }} />}
+      {showChangePw && <GantiPassword admin={admin} setAdmin={setAdmin} onClose={() => setShowChangePw(false)} onSuccess={() => { setShowChangePw(false); setSuccess("Password berhasil diubah"); }} />}
+      {confirmLogout && <ConfirmModal msg="Yakin ingin keluar dari aplikasi?" onYes={onLogout} onNo={() => setConfirmLogout(false)} />}
+      {success && <SuccessModal msg={success} onClose={() => setSuccess("")} />}
+    </div>
+  );
+}
+
+function EditProfil({ admin, onClose, onSave }) {
+  const [nama, setNama] = useState(admin.nama);
+  const [username, setUsername] = useState(admin.username);
+  const [err, setErr] = useState({});
+  const [confirm, setConfirm] = useState(false);
+  function trySubmit() { const e = {}; if (!nama.trim()) e.nama = "Nama wajib diisi"; if (!username.trim()) e.username = "Username wajib diisi"; if (Object.keys(e).length) return setErr(e); setConfirm(true); }
+  return (
+    <>
+      <Modal title="Edit Profil" onClose={onClose} footer={<><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={trySubmit} style={btnGreen}>Simpan</button></>}>
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ fontSize: 13, color: "#555" }}>Nama Lengkap</label>
+          <input value={nama} onChange={(e) => setNama(e.target.value)} style={{ ...inputStyle, marginTop: 4, borderColor: err.nama ? "#c0392b" : "#ccc" }} />
+          {err.nama && <p style={{ color: "#c0392b", fontSize: 11, margin: "3px 0 0" }}>{err.nama}</p>}
+        </div>
+        <div>
+          <label style={{ fontSize: 13, color: "#555" }}>Username</label>
+          <input value={username} onChange={(e) => setUsername(e.target.value)} style={{ ...inputStyle, marginTop: 4, borderColor: err.username ? "#c0392b" : "#ccc" }} />
+          {err.username && <p style={{ color: "#c0392b", fontSize: 11, margin: "3px 0 0" }}>{err.username}</p>}
+        </div>
+      </Modal>
+      {confirm && <ConfirmModal msg="Simpan perubahan profil?" onYes={() => { setConfirm(false); onSave({ nama: nama.trim(), username: username.trim() }); }} onNo={() => setConfirm(false)} />}
+    </>
+  );
+}
+
+function GantiPassword({ admin, setAdmin, onClose, onSuccess }) {
+  const [lama, setLama] = useState("");
+  const [baru, setBaru] = useState("");
+  const [conf, setConf] = useState("");
+  const [err, setErr] = useState("");
+  const [confirm, setConfirm] = useState(false);
+  function trySubmit() { if (lama !== admin.password) return setErr("Password lama salah"); if (baru.length < 6) return setErr("Password baru min 6 karakter"); if (baru !== conf) return setErr("Konfirmasi password tidak cocok"); setErr(""); setConfirm(true); }
+  return (
+    <>
+      <Modal title="Ganti Password" onClose={onClose} footer={<><button onClick={onClose} style={btnOutline}>Batal</button><button onClick={trySubmit} style={btnGreen}>Simpan</button></>}>
+        {[["Password Lama", lama, setLama], ["Password Baru", baru, setBaru], ["Konfirmasi Password Baru", conf, setConf]].map(([label, val, setter]) => (
+          <div key={label} style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 13, color: "#555" }}>{label}</label>
+            <input value={val} onChange={(e) => setter(e.target.value)} type="password" style={{ ...inputStyle, marginTop: 4 }} placeholder={label} />
+          </div>
+        ))}
+        {err && <p style={{ color: "#c0392b", fontSize: 12, margin: 0 }}>{err}</p>}
+      </Modal>
+      {confirm && <ConfirmModal msg="Yakin ingin mengganti password?" onYes={() => { setAdmin((prev) => ({ ...prev, password: baru })); setConfirm(false); onSuccess(); }} onNo={() => setConfirm(false)} />}
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════════════════════
+function App() {
+  const [phase, setPhase] = useState("splash");
+  const [screen, setScreen] = useState("dashboard");
+  const [admin, setAdmin] = useState(null);
+  const [barang, setBarang] = useState(SEED_BARANG);
+  const [transaksi, setTransaksi] = useState(SEED_TRANSAKSI);
+  const [kasbon, setKasbon] = useState(SEED_KASBON);
+  const usersDb = useRef(USERS_DB);
+
+  function handleLogin(user) { setAdmin(user); setPhase("app"); }
+  function handleLogout() { setAdmin(null); setPhase("login"); setScreen("dashboard"); }
+
+  if (phase === "splash") return <SplashScreen onDone={() => setPhase("login")} />;
+  if (phase === "login") return <LoginScreen onLogin={handleLogin} usersDb={usersDb.current} />;
+
+  const navScreens = ["dashboard", "penjualan", "kasbon", "profil"];
+
+  return (
+    <div style={{ maxWidth: 390, margin: "0 auto", position: "relative", minHeight: "100vh", background: "#f0f4f0" }}>
+      {screen === "dashboard" && <Dashboard barang={barang} transaksi={transaksi} kasbon={kasbon} setScreen={setScreen} admin={admin} />}
+      {screen === "barang" && <DataBarang barang={barang} setBarang={setBarang} setScreen={setScreen} />}
+      {screen === "penjualan" && <Penjualan barang={barang} setBarang={setBarang} transaksi={transaksi} setTransaksi={setTransaksi} setScreen={setScreen} />}
+      {screen === "kasbon" && <DataKasbon kasbon={kasbon} setKasbon={setKasbon} barang={barang} setScreen={setScreen} />}
+      {screen === "laporan" && <Laporan transaksi={transaksi} kasbon={kasbon} setScreen={setScreen} />}
+      {screen === "profil" && <Profil admin={admin} setAdmin={setAdmin} onLogout={handleLogout} />}
+      <BottomNav active={navScreens.includes(screen) ? screen : screen === "penjualan" ? "penjualan" : screen === "kasbon" ? "kasbon" : screen === "profil" ? "profil" : "dashboard"} setScreen={setScreen} />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+
+</body>
+</html>
